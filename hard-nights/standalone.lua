@@ -249,10 +249,7 @@ local ok, err = pcall(function()
                     health = tonumber(state:GetAttribute("Health"))
                 end
 
-                if health == nil then
-                    warn("[Hard Nights] Health unavailable after GameOver. Stopping safely.")
-                    return
-                end
+                health = health or 0
 
                 if health <= 0 then
                     Status("Night " .. night .. " lost. Returning to lobby")
