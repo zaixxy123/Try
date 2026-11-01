@@ -1,5 +1,5 @@
 return function(TDS)
-    TDS:VoteSkip(1,24)
+    TDS:VoteSkip(1,20)
 
     TDS:Place("Assassin", -5.52933692932128906, 104.78454589843750000, 135.17480468750000000)
     TDS:Upgrade(1)
