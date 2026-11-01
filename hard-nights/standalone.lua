@@ -242,28 +242,32 @@ local ok, err = pcall(function()
                 and not finished[night] then
                 finished[night] = true
                 local deadline = os.clock() + 5
-                while state.Parent and state:GetAttribute("Won") == nil
+                local health = tonumber(state:GetAttribute("Health"))
+                while state.Parent and health == nil
                     and os.clock() < deadline do
                     task.wait(0.2)
+                    health = tonumber(state:GetAttribute("Health"))
                 end
 
-                local won = state:GetAttribute("Won")
-                if won == false then
+                if health == nil then
+                    warn("[Hard Nights] Health unavailable after GameOver. Stopping safely.")
+                    return
+                end
+
+                if health <= 0 then
                     Status("Night " .. night .. " lost. Returning to lobby")
                     BackToLobby()
                     return
-                elseif won == true then
-                    if night == 4 then
-                        Status("Night 4 won. Finished.")
-                        return
-                    end
-                    Status("Night " .. night .. " won. Advancing.")
-                    if not NextNight() then
-                        warn("[Hard Nights] NextNight failed. No repeat matchmaking.")
-                        return
-                    end
-                else
-                    warn("[Hard Nights] No Won attribute found. Stopping safely.")
+                end
+
+                if night == 4 then
+                    Status("Night 4 won. Finished.")
+                    return
+                end
+
+                Status("Night " .. night .. " won. Advancing.")
+                if not NextNight() then
+                    warn("[Hard Nights] NextNight failed. No repeat matchmaking.")
                     return
                 end
             end
