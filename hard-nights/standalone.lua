@@ -13,9 +13,12 @@ local LOBBY_PLACE_ID = 3260590327
 local ROOT_URL = "https://raw.githubusercontent.com/zaixxy123/Try/refs/heads/main/hard-nights/"
 local APIS_URL = "https://raw.githubusercontent.com/zaixxy123/lists/refs/heads/main/apis2"
 local PUZZLE_URL = "https://raw.githubusercontent.com/zaixxy123/lists/refs/heads/main/puzzle.lua"
+local GATLIFY_URL = "https://raw.githubusercontent.com/avtryxz/Gatlify/refs/heads/main/Gatlify.lua"
 local LOADOUT = {"DJ Booth", "Gatling Gun", "Mercenary Base", "Hacker", "Assassin"}
 local started = {}
 local finished = {}
+local gatlifyLoaded = false
+local gatlifyLoading = false
 
 local function Status(message)
     print("[Hard Nights] " .. message)
@@ -139,6 +142,38 @@ local function QueueRelaunch()
     end
 end
 
+local function StartGatlify(state)
+    if gatlifyLoaded or gatlifyLoading then return end
+    gatlifyLoading = true
+    task.spawn(function()
+        while state.Parent
+            and state:GetAttribute("GameStarted") ~= true
+            and state:GetAttribute("GameOver") ~= true do
+            task.wait(0.1)
+        end
+
+        if not state.Parent or state:GetAttribute("GameOver") == true then
+            gatlifyLoading = false
+            return
+        end
+
+        local ok, err = pcall(function()
+            local source = game:HttpGet(GATLIFY_URL)
+            local chunk, compileError = loadstring(source)
+            if not chunk then error(compileError) end
+            chunk()
+        end)
+
+        gatlifyLoading = false
+        if ok then
+            gatlifyLoaded = true
+            Status("Gatlify loaded")
+        else
+            warn("[Hard Nights] Gatlify:", err)
+        end
+    end)
+end
+
 local function StartPuzzle(state)
     task.spawn(function()
         while state.Parent
@@ -163,6 +198,7 @@ local function RunNight(tds, night, state)
     tds.PlacedTowers = {}
     tds.placed_towers = tds.PlacedTowers
     tds.StackCounts = {}
+    StartGatlify(state)
     if night == 4 then StartPuzzle(state) end
     Status("Running Night " .. night .. " Hard")
     task.spawn(function()
